@@ -22,7 +22,7 @@ namespace KenticoCloud.Delivery
         private readonly IContentLinkUrlResolver _contentLinkUrlResolver;
         private readonly IInlineContentItemsProcessor _inlineContentItemsProcessor;
         private readonly ICodeFirstModelProvider _codeFirstModelProvider;
-        private ICodeFirstTypeProvider _codeFirstTypeProvider;
+        private readonly ICodeFirstTypeProvider _codeFirstTypeProvider;
         private readonly ICodeFirstPropertyMapper _codeFirstPropertyMapper;
 
         private HttpClient _httpClient;
