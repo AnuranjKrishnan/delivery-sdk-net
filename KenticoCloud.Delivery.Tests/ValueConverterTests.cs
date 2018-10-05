@@ -8,6 +8,7 @@ using RichardSzalay.MockHttp;
 using System.IO;
 using FakeItEasy;
 using KenticoCloud.Delivery.InlineContentItems;
+using KenticoCloud.Delivery.ResiliencePolicy;
 using Microsoft.Extensions.Options;
 
 namespace KenticoCloud.Delivery.Tests
@@ -105,6 +106,7 @@ namespace KenticoCloud.Delivery.Tests
         {
             var httpClient = mockHttp.ToHttpClient();
             var contentLinkUrlResolver = A.Fake<IContentLinkUrlResolver>();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = guid });
             var codeFirstModelProvider = new CodeFirstModelProvider(
                 contentLinkUrlResolver,
@@ -112,7 +114,7 @@ namespace KenticoCloud.Delivery.Tests
                 new CustomTypeProvider(),
                 new CodeFirstPropertyMapper()
             );
-            var client = new DeliveryClient(deliveryOptions, null, null, codeFirstModelProvider)
+            var client = new DeliveryClient(deliveryOptions, null, null, codeFirstModelProvider, resiliencePolicyProvider)
             {
                 HttpClient = httpClient,
             };

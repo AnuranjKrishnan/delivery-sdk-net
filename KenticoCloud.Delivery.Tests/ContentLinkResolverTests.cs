@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using FakeItEasy;
 using KenticoCloud.Delivery.InlineContentItems;
+using KenticoCloud.Delivery.ResiliencePolicy;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -121,6 +122,7 @@ namespace KenticoCloud.Delivery.Tests
                Respond("application/json", File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "Fixtures\\ContentLinkResolver\\coffee_processing_techniques.json")));
 
             var httpClient = mockHttp.ToHttpClient();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var contentLinkUrlResolver = new CustomContentLinkUrlResolver();
             var contentItemsProcessor = new InlineContentItemsProcessor(new ReplaceWithEmptyStringResolver(), new ReplaceWithEmptyStringForUnretrievedItemsResolver());
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = guid });
@@ -129,7 +131,8 @@ namespace KenticoCloud.Delivery.Tests
                 deliveryOptions,
                 contentLinkUrlResolver,
                 contentItemsProcessor,
-                codeFirstModelProvider
+                codeFirstModelProvider,
+                resiliencePolicyProvider
             )
             {
                 HttpClient = httpClient,

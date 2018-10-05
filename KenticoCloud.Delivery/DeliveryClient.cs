@@ -6,7 +6,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
-
 using KenticoCloud.Delivery.Extensions;
 using KenticoCloud.Delivery.InlineContentItems;
 using KenticoCloud.Delivery.ResiliencePolicy;
@@ -24,10 +23,10 @@ namespace KenticoCloud.Delivery
         private readonly ICodeFirstModelProvider _codeFirstModelProvider;
         private readonly ICodeFirstTypeProvider _codeFirstTypeProvider;
         private readonly ICodeFirstPropertyMapper _codeFirstPropertyMapper;
+        private readonly IResiliencePolicyProvider _resiliencePolicyProvider;
 
         private HttpClient _httpClient;
         private DeliveryEndpointUrlBuilder _urlBuilder;
-        private IResiliencePolicyProvider _resiliencePolicyProvider;
 
         private DeliveryEndpointUrlBuilder UrlBuilder
         {
@@ -53,11 +52,11 @@ namespace KenticoCloud.Delivery
         /// <summary>
         /// Gets or sets the retry policy provider for HTTP requests.
         /// </summary>
-        public IResiliencePolicyProvider ResiliencePolicyProvider
-        {
-            get { return _resiliencePolicyProvider ?? (_resiliencePolicyProvider = new DefaultResiliencePolicyProvider(_deliveryOptions.MaxRetryAttempts)); }
-            set { _resiliencePolicyProvider = value; }
-        }
+        //public IResiliencePolicyProvider ResiliencePolicyProvider
+        //{
+        //    get { return _resiliencePolicyProvider ?? (_resiliencePolicyProvider = new DefaultResiliencePolicyProvider(_deliveryOptions.MaxRetryAttempts)); }
+        //    set { _resiliencePolicyProvider = value; }
+        //}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeliveryClient"/> class for retrieving content of the specified project.
@@ -108,6 +107,11 @@ namespace KenticoCloud.Delivery
             {
                 _codeFirstModelProvider = new CodeFirstModelProvider(_contentLinkUrlResolver, _inlineContentItemsProcessor, _codeFirstTypeProvider, _codeFirstPropertyMapper);
             }
+
+            if (_resiliencePolicyProvider == null)
+            {
+                _resiliencePolicyProvider = new DefaultResiliencePolicyProvider(_deliveryOptions.MaxRetryAttempts);
+            }
         }
 
         /// <summary>
@@ -131,7 +135,7 @@ namespace KenticoCloud.Delivery
             _contentLinkUrlResolver = contentLinkUrlResolver;
             _inlineContentItemsProcessor = contentItemsProcessor;
             _codeFirstModelProvider = codeFirstModelProvider;
-            ResiliencePolicyProvider = retryPolicyProvider;
+            _resiliencePolicyProvider = retryPolicyProvider;
             _codeFirstTypeProvider = codeFirstTypeProvider;
             _codeFirstPropertyMapper = codeFirstPropertyMapper;
         }
@@ -142,15 +146,6 @@ namespace KenticoCloud.Delivery
         /// <param name="projectId">The identifier of the Kentico Cloud project.</param>
         public DeliveryClient(string projectId) 
             : this(new DeliveryOptions { ProjectId = projectId })
-        { }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="DeliveryClient"/> class for the unpublished content of the specified project.
-        /// </summary>
-        /// <param name="projectId">The identifier of the Kentico Cloud project.</param>
-        /// <param name="previewApiKey">The Preview API key.</param>
-        public DeliveryClient(string projectId, string previewApiKey) 
-            : this(new DeliveryOptions { ProjectId = projectId, PreviewApiKey = previewApiKey, UsePreviewApi = true })
         { }
 
         /// <summary>
@@ -511,13 +506,11 @@ namespace KenticoCloud.Delivery
             if (_deliveryOptions.EnableResilienceLogic)
             {
                 // Use the resilience logic.
-                var policyResult = await ResiliencePolicyProvider?.Policy?.ExecuteAndCaptureAsync(() =>
+                var policyResult = await _resiliencePolicyProvider.Policy?.ExecuteAndCaptureAsync(() =>
                     {
                         return SendHttpMessage(endpointUrl);
                     }
                 );
-
-                return await GetResponseContent(policyResult?.FinalHandledResult ?? policyResult?.Result);
             }
 
             // Omit using the resilience logic completely.

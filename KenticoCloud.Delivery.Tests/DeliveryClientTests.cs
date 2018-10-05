@@ -44,13 +44,15 @@ namespace KenticoCloud.Delivery.Tests
 
             var httpClient = _mockHttp.ToHttpClient();
             var contentLinkUrlResolver = A.Fake<IContentLinkUrlResolver>();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = _guid });
             var codeFirstModelProvider = new CodeFirstModelProvider(contentLinkUrlResolver, null, null, new CodeFirstPropertyMapper());
             var client = new DeliveryClient(
                 deliveryOptions,
                 contentLinkUrlResolver,
                 null,
-                codeFirstModelProvider
+                codeFirstModelProvider,
+                resiliencePolicyProvider
             )
             {
                 HttpClient = httpClient,
@@ -454,8 +456,9 @@ namespace KenticoCloud.Delivery.Tests
             var httpClient = _mockHttp.ToHttpClient();
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = _guid });
             var customTypeProvider = A.Fake<ICodeFirstTypeProvider>();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var codeFirstModelProvider = new CodeFirstModelProvider(null, null, customTypeProvider, new CodeFirstPropertyMapper());
-            var client = new DeliveryClient(deliveryOptions, null, null, codeFirstModelProvider)
+            var client = new DeliveryClient(deliveryOptions, null, null, codeFirstModelProvider, resiliencePolicyProvider)
             {
                 HttpClient = httpClient,
             };
@@ -507,8 +510,9 @@ namespace KenticoCloud.Delivery.Tests
             var httpClient = _mockHttp.ToHttpClient();
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = _guid });
             var customTypeProvider = A.Fake<ICodeFirstTypeProvider>();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var codeFirstModelProvider = new CodeFirstModelProvider(null, null, customTypeProvider, new CodeFirstPropertyMapper());
-            var client = new DeliveryClient(deliveryOptions, null, null, codeFirstModelProvider)
+            var client = new DeliveryClient(deliveryOptions, null, null, codeFirstModelProvider, resiliencePolicyProvider)
             {
                 HttpClient = httpClient,
             };
@@ -531,13 +535,15 @@ namespace KenticoCloud.Delivery.Tests
 
             var httpClient = _mockHttp.ToHttpClient();
             var contentLinkUrlResolver = A.Fake<IContentLinkUrlResolver>();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = _guid });
             var codeFirstModelProvider = new CodeFirstModelProvider(contentLinkUrlResolver, null, null, new CodeFirstPropertyMapper());
             var client = new DeliveryClient(
                 deliveryOptions,
                 contentLinkUrlResolver,
                 null,
-                codeFirstModelProvider
+                codeFirstModelProvider,
+                resiliencePolicyProvider
             )
             {
                 HttpClient = httpClient,
@@ -558,13 +564,15 @@ namespace KenticoCloud.Delivery.Tests
 
             var httpClient = _mockHttp.ToHttpClient();
             var contentLinkUrlResolver = A.Fake<IContentLinkUrlResolver>();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = _guid });
             var codeFirstModelProvider = new CodeFirstModelProvider(contentLinkUrlResolver, null, null, new CodeFirstPropertyMapper());
             var client = new DeliveryClient(
                 deliveryOptions,
                 contentLinkUrlResolver,
                 null,
-                codeFirstModelProvider
+                codeFirstModelProvider,
+                resiliencePolicyProvider
             )
             {
                 HttpClient = httpClient,
@@ -586,13 +594,15 @@ namespace KenticoCloud.Delivery.Tests
 
             var httpClient = _mockHttp.ToHttpClient();
             var contentLinkUrlResolver = A.Fake<IContentLinkUrlResolver>();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = _guid });
             var codeFirstModelProvider = new CodeFirstModelProvider(contentLinkUrlResolver, null, null, new CodeFirstPropertyMapper());
             var client = new DeliveryClient(
                 deliveryOptions,
                 contentLinkUrlResolver,
                 null,
-                codeFirstModelProvider
+                codeFirstModelProvider,
+                resiliencePolicyProvider
             )
             {
                 HttpClient = httpClient,
@@ -613,13 +623,15 @@ namespace KenticoCloud.Delivery.Tests
 
             var httpClient = _mockHttp.ToHttpClient();
             var contentLinkUrlResolver = A.Fake<IContentLinkUrlResolver>();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = _guid });
             var codeFirstModelProvider = new CodeFirstModelProvider(contentLinkUrlResolver, null, null, new CodeFirstPropertyMapper());
             var client = new DeliveryClient(
                 deliveryOptions,
                 contentLinkUrlResolver,
                 null,
-                codeFirstModelProvider
+                codeFirstModelProvider,
+                resiliencePolicyProvider
             )
             {
                 HttpClient = httpClient,
@@ -831,10 +843,9 @@ namespace KenticoCloud.Delivery.Tests
             A.CallTo(() => mockResilencePolicyProvider.Policy)
                .Returns(Policy.HandleResult<HttpResponseMessage>(result => true).RetryAsync(retryAttempts));
 
-            var client = new DeliveryClient(_guid)
+            var client = new DeliveryClient(new OptionsWrapper<DeliveryOptions>(new DeliveryOptions{ProjectId = _guid}), null, null, null, mockResilencePolicyProvider)
             {
                 HttpClient = httpClient,
-                ResiliencePolicyProvider = mockResilencePolicyProvider
             };
 
             await Assert.ThrowsAsync<DeliveryException>(async () => await client.GetItemsAsync());
@@ -862,10 +873,9 @@ namespace KenticoCloud.Delivery.Tests
                 ProjectId = _guid,
                 EnableResilienceLogic = false
             };
-            var client = new DeliveryClient(deliveryOptions)
+            var client = new DeliveryClient(new OptionsWrapper<DeliveryOptions>(deliveryOptions), null, null, null, mockResilencePolicyProvider)
             {
                 HttpClient = httpClient,
-                ResiliencePolicyProvider = mockResilencePolicyProvider
             };
 
             await Assert.ThrowsAsync<DeliveryException>(async () => await client.GetItemsAsync());
@@ -893,10 +903,9 @@ namespace KenticoCloud.Delivery.Tests
                 ProjectId = _guid,
                 MaxRetryAttempts = ignoredRetryAttempt
             };
-            var client = new DeliveryClient(deliveryOptions)
+            var client = new DeliveryClient(new OptionsWrapper<DeliveryOptions>(deliveryOptions), null, null, null, mockResilencePolicyProvider)
             {
                 HttpClient = httpClient,
-                ResiliencePolicyProvider = mockResilencePolicyProvider
             };
 
             await Assert.ThrowsAsync<DeliveryException>(async () => await client.GetItemsAsync());
@@ -918,8 +927,9 @@ namespace KenticoCloud.Delivery.Tests
                     .Respond("application/json", File.ReadAllText(Path.Combine(Environment.CurrentDirectory, "Fixtures\\DeliveryClient\\items.json")));
 
             var mockHttpClient = _mockHttp.ToHttpClient();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
 
-            var client = new DeliveryClient(_guid)
+            var client = new DeliveryClient(new OptionsWrapper<DeliveryOptions>(new DeliveryOptions{ProjectId = _guid}), null, null, null, resiliencePolicyProvider)
             {
                 HttpClient = mockHttpClient
             };
@@ -933,13 +943,15 @@ namespace KenticoCloud.Delivery.Tests
         {
             var httpClient = _mockHttp.ToHttpClient();
             var contentLinkUrlResolver = A.Fake<IContentLinkUrlResolver>();
+            var resiliencePolicyProvider = A.Fake<IResiliencePolicyProvider>();
             var deliveryOptions = new OptionsWrapper<DeliveryOptions>(new DeliveryOptions { ProjectId = _guid });
             var codeFirstModelProvider = new CodeFirstModelProvider(contentLinkUrlResolver, null, new CustomTypeProvider(), new CodeFirstPropertyMapper());
             var client = new DeliveryClient(
                 deliveryOptions,
                 contentLinkUrlResolver,
                 null,
-                codeFirstModelProvider
+                codeFirstModelProvider,
+                resiliencePolicyProvider
             )
             {
                 HttpClient = httpClient,
