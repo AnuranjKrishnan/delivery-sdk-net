@@ -1,4 +1,7 @@
-﻿using KenticoCloud.Delivery.InlineContentItems;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using KenticoCloud.Delivery.InlineContentItems;
 using KenticoCloud.Delivery.ResiliencePolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +15,7 @@ namespace KenticoCloud.Delivery
         public static IServiceCollection AddDeliveryClient(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions();
-            services.TryAddTransient(serviceProvider => (IContentLinkUrlResolver)null);
+            services.TryAddTransient(serviceProvider => (IContentLinkUrlResolver)null); //rozdelit do metod
             services.TryAddTransient(serviceProvider => (ICodeFirstTypeProvider)null);
             services.TryAddTransient<IInlineContentItemsResolver<object>, ReplaceWithWarningAboutRegistrationResolver>();
             services.TryAddTransient<IInlineContentItemsResolver<UnretrievedContentItem>, ReplaceWithWarningAboutUnretrievedItemResolver>();
